@@ -5,7 +5,7 @@ fn get_location_lists(lists: String) -> (Vec<usize>, Vec<usize>) {
         .lines()
         .filter_map(|line| {
             if let Some((left, right)) = line.split_once("   ") {
-                // Convert left and right to integers, returning None if they cannot be converted.
+                // Convert left and right to integers and zip them together.
                 left.parse::<usize>().ok().zip(right.parse::<usize>().ok())
             } else {
                 None
@@ -14,28 +14,43 @@ fn get_location_lists(lists: String) -> (Vec<usize>, Vec<usize>) {
         .unzip()
 }
 
-fn paired_distances() -> usize {
-    // For two lists, sort each of them and zip by difference. Return the total sum of these
-    // differences.
+fn paired_differences(input: String) -> usize {
+    // Compare the difference between each adjacent element of two sorted lists.
 
-    if let Some(input) = fs::read_to_string("data/1.data").ok() {
-        let (mut left_list, mut right_list) = get_location_lists(input);
+    let (mut left_list, mut right_list) = get_location_lists(input);
 
-        // Sort both lists.
-        left_list.sort();
-        right_list.sort();
+    // Sort both lists.
+    left_list.sort();
+    right_list.sort();
 
-        return left_list
-            .into_iter()
-            .zip(right_list)
-            .map(|(left, right)| left.abs_diff(right))
-            .sum();
+    return left_list
+        .into_iter()
+        .zip(right_list)
+        .map(|(left, right)| left.abs_diff(right))
+        .sum();
+}
 
-    } else {
-        panic!("No puzzle input");
-    }
+fn matched_occurrences(input: String) -> usize {
+    // Multiply each number in the left list by how many times it appears in the right list.
+
+    let (left_list, right_list) = get_location_lists(input);
+
+    return left_list
+        .iter()
+        .map(|left_id| {
+            left_id * right_list
+                .clone()
+                .into_iter()
+                .filter(|right_id| left_id == right_id)
+                .count()
+        }).sum();
 }
 
 fn main() {
-    println!("part 1: {}", paired_distances());
+    if let Some(input) = fs::read_to_string("data/1.data").ok() {
+        println!("part 1: {}", paired_differences(input.clone()));
+        println!("part 2: {}", matched_occurrences(input));
+    } else {
+        panic!("No puzzle input")
+    }
 }
