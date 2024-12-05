@@ -69,6 +69,47 @@ fn find_words() -> usize {
     }
 }
 
+fn find_crosses() -> usize {
+    if let Some(input) = fs::read_to_string("data/4.input").ok() {
+        let wordsearch: Vec<Vec<char>> = input
+            .clone()
+            .lines()
+            .map(|line| line.chars().collect())
+            .collect();
+
+        input
+            .lines()
+            .enumerate()
+            .map(|(y, line)| {
+                line
+                    .chars()
+                    .enumerate()
+                    .filter(|(x, char)| {
+                        // Ensure we're in reasonable bounds to do y/x +/- 1.
+                        if
+                            *x > 0 && *x < wordsearch[0].len() - 1 &&
+                            y > 0 && y < wordsearch.len() - 1 &&
+                            *char == 'A'
+                        {
+                            // Then brute force the search for M's and S's.
+                            if ((wordsearch[y-1][x-1] == 'M' && wordsearch[y+1][x+1] == 'S') ||
+                                (wordsearch[y-1][x-1] == 'S' && wordsearch[y+1][x+1] == 'M')) &&
+                               ((wordsearch[y+1][x-1] == 'M' && wordsearch[y-1][x+1] == 'S') ||
+                                (wordsearch[y+1][x-1] == 'S' && wordsearch[y-1][x+1] == 'M'))
+                            {
+                                return true;
+                            }
+                        }
+
+                        false
+                    }).count()
+            }).sum()
+    } else {
+        panic!("No puzzle input")
+    }
+}
+
 fn main() {
     println!("part one: {}", find_words());
+    println!("part two: {}", find_crosses());
 }
