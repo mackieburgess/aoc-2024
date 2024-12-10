@@ -27,7 +27,37 @@ fn destinations(map: &Vec<Vec<usize>>, cursor: (usize, usize)) -> Vec<(usize, us
     }
 }
 
-fn sum_of_trailhead_score() -> usize {
+fn sum_of_trailhead_score(map: &Vec<Vec<usize>>, includes_duplicates: bool) -> usize {
+    let trailheads = map
+        .iter()
+        .enumerate()
+        .map(|(y, line)|
+            line
+                .iter()
+                .enumerate()
+                .filter(|(_, height)| **height == 0)
+                .map(|(x, _)| (x, y))
+                .collect::<Vec<_>>()
+        )
+        .flatten()
+        .collect::<Vec<_>>();
+
+    trailheads
+        .into_iter()
+        .map(|trailhead|
+            if includes_duplicates {
+                destinations(&map, trailhead)
+                    .len()
+            } else {
+                destinations(&map, trailhead)
+                    .iter()
+                    .collect::<HashSet<_>>()
+                    .len()
+            }
+        ).sum()
+}
+
+fn main() {
     if let Some(input) = fs::read_to_string("data/10.input").ok() {
         let map: Vec<Vec<usize>> = input
             .lines()
@@ -36,33 +66,9 @@ fn sum_of_trailhead_score() -> usize {
             )
             .collect();
 
-        let trailheads = map
-            .iter()
-            .enumerate()
-            .map(|(y, line)|
-                line
-                    .iter()
-                    .enumerate()
-                    .filter(|(_, height)| **height == 0)
-                    .map(|(x, _)| (x, y))
-                    .collect::<Vec<_>>()
-            )
-            .flatten()
-            .collect::<Vec<_>>();
-
-        trailheads
-            .into_iter()
-            .map(|trailhead|
-                destinations(&map, trailhead)
-                    .iter()
-                    .collect::<HashSet<_>>()
-                    .len()
-            ).sum()
+        println!("part one: {}", sum_of_trailhead_score(&map, false));
+        println!("part two: {}", sum_of_trailhead_score(&map, true));
     } else {
         panic!("No puzzle input");
     }
-}
-
-fn main() {
-    println!("part one: {}", sum_of_trailhead_score());
 }
