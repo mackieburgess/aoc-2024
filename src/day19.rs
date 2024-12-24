@@ -15,9 +15,9 @@ fn number_of_variations(
         let variations = towels
             .iter()
             .filter_map(|towel| {
-                if pattern.starts_with(towel) {
+                if let Some(("", rhs)) = pattern.split_once(towel) {
                     return Some(number_of_variations(
-                        pattern.trim_start_matches(towel).to_string(),
+                        rhs.to_string(),
                         towels,
                         cache
                     ));
@@ -33,27 +33,40 @@ fn number_of_variations(
     }
 }
 
-fn possible_towel_patterns() -> usize {
+fn possible_towel_patterns(towels: &Vec<&str>, patterns: &Vec<&str>) -> usize {
+    let mut cache = HashMap::new();
+
+    patterns
+        .iter()
+        .filter(|pattern| {
+            number_of_variations(pattern.to_string(), towels, &mut cache) > 0
+        })
+        .count()
+}
+
+fn possible_towel_ways(towels: &Vec<&str>, patterns: &Vec<&str>) -> usize {
+    let mut cache = HashMap::new();
+
+    patterns
+        .iter()
+        .map(|pattern| {
+            number_of_variations(pattern.to_string(), towels, &mut cache)
+        })
+        .sum()
+}
+
+fn main() {
     if let Some(input) = fs::read_to_string("data/19.input").ok() {
         if let Some((towels, patterns)) = input.split_once("\n\n") {
             let towels = towels.trim().split(", ").collect::<Vec<_>>();
             let patterns = patterns.trim().split("\n").collect::<Vec<_>>();
-            let mut cache = HashMap::new();
 
-            patterns
-                .into_iter()
-                .filter(|pattern| {
-                    number_of_variations(pattern.to_string(), &towels, &mut cache) > 0
-                })
-                .count()
+            println!("part one: {}", possible_towel_patterns(&towels, &patterns));
+            println!("part one: {}", possible_towel_ways(&towels, &patterns));
         } else {
             panic!("Puzzle input isn't split into towels and patterns")
         }
     } else {
         panic!("No puzzle input")
     }
-}
-
-fn main() {
-    println!("part one: {}", possible_towel_patterns());
 }
